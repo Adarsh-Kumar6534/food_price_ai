@@ -1,0 +1,12 @@
+{
+  "/about/page": "app/about/page.js",
+  "/api/analytics/route": "app/api/analytics/route.js",
+  "/api/notebook/route": "app/api/notebook/route.js",
+  "/api/options/route": "app/api/options/route.js",
+  "/api/predict/classification/route": "app/api/predict/classification/route.js",
+  "/api/predict/regression/route": "app/api/predict/regression/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/notebook/page": "app/notebook/page.js",
+  "/page": "app/page.js",
+  "/prediction/page": "app/prediction/page.js"
+}

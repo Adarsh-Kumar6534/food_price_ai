@@ -1,0 +1,3 @@
+{
+  "/api/predict/regression/route": "app/api/predict/regression/route.js"
+}
