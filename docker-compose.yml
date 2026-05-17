@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: predictive-dash-app
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    # Limit resources to keep it lightweight for local development
+    cpus: 0.50
+    mem_limit: 512M
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=1d'
+    mem_limit: 256M
+    depends_on:
+      - app
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000" # Mapping to 3001 to avoid conflict with the app
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    mem_limit: 256M
+    depends_on:
+      - prometheus
+
+  # Jenkins is optional for local running, but included for the complete stack
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    user: root # Needed to run Docker inside Jenkins if required, but for demo we keep it simple
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    mem_limit: 768M
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      # Mount docker socket if Docker build inside Jenkins is needed
+      # - /var/run/docker.sock:/var/run/docker.sock 
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: predictive-dash-app
+  namespace: predictive-dash-ns
+  labels:
+    app: predictive-dash
+spec:
+  replicas: 1 # Strictly 1 replica to stay free-tier safe
+  selector:
+    matchLabels:
+      app: predictive-dash
+  template:
+    metadata:
+      labels:
+        app: predictive-dash
+    spec:
+      containers:
+      - name: predictive-dash-container
+        image: predictive-dash:latest # Replace with your Docker Hub image if pushing
+        imagePullPolicy: IfNotPresent # Allows using local Minikube images
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi" # Free-tier safe limit
+            cpu: "500m"
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"

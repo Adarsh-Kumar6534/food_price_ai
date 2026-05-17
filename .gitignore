@@ -1,1 +1,7 @@
 node_modules
+.next
+out
+build
+.env*.local
+build_log*
+lint_log*

@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.dockerignore
+Dockerfile
+docker-compose.yml
+k8s/
+monitoring/
+terraform/
+build_log.txt
+build_log_*.txt
+lint_log.txt

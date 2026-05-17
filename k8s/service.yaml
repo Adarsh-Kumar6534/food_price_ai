@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: predictive-dash-service
+  namespace: predictive-dash-ns
+spec:
+  type: NodePort # Simple access for Minikube without needing an Ingress
+  selector:
+    app: predictive-dash
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30030 # Fixed port for easy access: minikube ip:30030

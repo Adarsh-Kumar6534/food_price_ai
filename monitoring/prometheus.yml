@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 1m
+  evaluation_interval: 1m
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Simple node exporter configuration if used, or dummy scrape for app uptime
+  - job_name: "predictive-dash-app"
+    metrics_path: "/" # The app doesn't have a /metrics endpoint, this is just to track uptime/response code
+    static_configs:
+      - targets: ["app:3000"] # Docker-compose service name
