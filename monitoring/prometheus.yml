@@ -7,8 +7,8 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  # Simple node exporter configuration if used, or dummy scrape for app uptime
+  # Scrape the dedicated metrics endpoint
   - job_name: "predictive-dash-app"
-    metrics_path: "/" # The app doesn't have a /metrics endpoint, this is just to track uptime/response code
+    metrics_path: "/api/metrics"
     static_configs:
-      - targets: ["app:3000"] # Docker-compose service name
+      - targets: ["predictive-dash-app:3000"]

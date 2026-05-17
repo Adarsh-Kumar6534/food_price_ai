@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getPricePercentiles, getPredictionBaseline } from '@/lib/csvParser';
+import { apiRequestCounter } from '@/lib/metrics';
 
 export async function POST(request: Request) {
+    apiRequestCounter.inc({ route: '/api/predict/classification', method: 'POST' });
     try {
         const body = await request.json();
         const { country, commodity, vulnerabilityIndex, transportCostIndex } = body;

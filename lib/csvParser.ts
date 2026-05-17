@@ -2,6 +2,18 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
 
+// --- IN-MEMORY CACHE ---
+let cachedData: WFPDataPoint[] | null = null;
+let cachedPriceTrends: any = null;
+let cachedRegionalAnalysis: any = null;
+let cachedCorrelationData: any = null;
+let cachedSummaryStatistics: any = null;
+
+// Map: FieldName -> Unique Values Array
+const cachedUniqueValues: Record<string, string[]> = {};
+// Map: CountryName -> Commodities Array
+const cachedCommoditiesForCountry: Record<string, string[]> = {};
+
 export interface WFPDataPoint {
     country: string;
     region: string;
@@ -23,6 +35,8 @@ function getCSVPath() {
 
 export function getWFPData(): WFPDataPoint[] {
     try {
+        if (cachedData) return cachedData;
+
         const csvPath = getCSVPath();
 
         if (!fs.existsSync(csvPath)) {
@@ -43,6 +57,7 @@ export function getWFPData(): WFPDataPoint[] {
             }
         }) as WFPDataPoint[];
 
+        cachedData = records;
         return records;
     } catch (error) {
         console.error('getWFPData Error:', error);
@@ -53,6 +68,8 @@ export function getWFPData(): WFPDataPoint[] {
 // 1. PRICE TRENDS OVER TIME — CLEAN VERSION (Monthly Aggregated)
 export function getPriceTrends() {
     try {
+        if (cachedPriceTrends) return cachedPriceTrends;
+
         const data = getWFPData();
         if (!data || data.length === 0) return { labels: [], datasets: [] };
 
@@ -99,7 +116,8 @@ export function getPriceTrends() {
             };
         });
 
-        return { labels: sortedMonths, datasets };
+        cachedPriceTrends = { labels: sortedMonths, datasets };
+        return cachedPriceTrends;
     } catch (error) {
         console.error('getPriceTrends Error:', error);
         return { labels: [], datasets: [] };
@@ -109,6 +127,8 @@ export function getPriceTrends() {
 // 2. REGIONAL ANALYSIS — REALISTIC VOLATILITY (std / mean)
 export function getRegionalAnalysis() {
     try {
+        if (cachedRegionalAnalysis) return cachedRegionalAnalysis;
+
         const data = getWFPData();
         if (!data || data.length === 0) return { labels: [], datasets: [] };
 
@@ -162,7 +182,7 @@ export function getRegionalAnalysis() {
             'rgba(236, 72, 153, 0.8)',  // Pink
         ];
 
-        return {
+        cachedRegionalAnalysis = {
             labels: regions,
             datasets: [{
                 label: 'Price Volatility (Normalized)',
@@ -174,6 +194,7 @@ export function getRegionalAnalysis() {
                 barThickness: 40,
             }]
         };
+        return cachedRegionalAnalysis;
     } catch (error) {
         console.error('getRegionalAnalysis Error:', error);
         return { labels: [], datasets: [] };
@@ -183,6 +204,8 @@ export function getRegionalAnalysis() {
 // 3. COMMODITY CORRELATION — FIXED VERSION (Avg Cost vs Avg Price)
 export function getCorrelationData() {
     try {
+        if (cachedCorrelationData) return cachedCorrelationData;
+
         const data = getWFPData();
         if (!data || data.length === 0) return [];
 
@@ -215,6 +238,7 @@ export function getCorrelationData() {
             };
         });
 
+        cachedCorrelationData = result;
         return result;
     } catch (error) {
         console.error('getCorrelationData Error:', error);
@@ -225,6 +249,8 @@ export function getCorrelationData() {
 // 4. SUMMARY STATISTICS — REAL VALUES
 export function getSummaryStatistics() {
     try {
+        if (cachedSummaryStatistics) return cachedSummaryStatistics;
+
         const data = getWFPData();
         if (!data || data.length === 0) {
             return {
@@ -265,11 +291,12 @@ export function getSummaryStatistics() {
         // C. Data Points
         const totalDataPoints = data.length;
 
-        return {
+        cachedSummaryStatistics = {
             globalAvgPrice,
             mostVolatileCommodity,
             totalDataPoints
         };
+        return cachedSummaryStatistics;
 
     } catch (error) {
         console.error('getSummaryStatistics Error:', error);
@@ -283,6 +310,10 @@ export function getSummaryStatistics() {
 // 5. HELPER: Get Unique Values for Dropdowns
 export function getUniqueValues(field: keyof WFPDataPoint): string[] {
     try {
+        if (cachedUniqueValues[field as string]) {
+            return cachedUniqueValues[field as string];
+        }
+
         const data = getWFPData();
         const values = new Set<string>();
         data.forEach(row => {
@@ -290,7 +321,9 @@ export function getUniqueValues(field: keyof WFPDataPoint): string[] {
                 values.add(String(row[field]));
             }
         });
-        return Array.from(values).sort();
+        const result = Array.from(values).sort();
+        cachedUniqueValues[field as string] = result;
+        return result;
     } catch (error) {
         console.error(`getUniqueValues error for ${field}:`, error);
         return [];
@@ -299,6 +332,10 @@ export function getUniqueValues(field: keyof WFPDataPoint): string[] {
 
 export function getCommoditiesForCountry(country: string): string[] {
     try {
+        if (cachedCommoditiesForCountry[country]) {
+            return cachedCommoditiesForCountry[country];
+        }
+
         const data = getWFPData();
         const values = new Set<string>();
         data.forEach(row => {
@@ -306,7 +343,9 @@ export function getCommoditiesForCountry(country: string): string[] {
                 values.add(String(row.commodity));
             }
         });
-        return Array.from(values).sort();
+        const result = Array.from(values).sort();
+        cachedCommoditiesForCountry[country] = result;
+        return result;
     } catch (error) {
         console.error(`getCommoditiesForCountry error for ${country}:`, error);
         return [];

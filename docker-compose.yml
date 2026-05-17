@@ -5,6 +5,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+    image: predictive-dash:latest
     container_name: predictive-dash-app
     ports:
       - "3000:3000"
